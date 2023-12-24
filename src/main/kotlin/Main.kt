@@ -7,6 +7,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.loadXmlImageVector
@@ -17,11 +18,10 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
 fun main() = application {
-    val icon = painterResource("DS.png")
     Window(
+
         title = "Лабораторная работа #2",
         onCloseRequest = ::exitApplication,
-        icon = icon
     ) {
         App()
     }
@@ -30,20 +30,16 @@ fun main() = application {
 @Composable
 fun App() {
     val screens = Screen.values().toList()
-    val navController by rememberNavController(Screen.SJF.name)
+    val navController by rememberNavController(Screen.RR.name)
     val currentScreen by remember {
         navController.currentScreen
     }
 
     MaterialTheme {
-
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
-            // I have used navigation rail to show how it works
-            // You can use your own navbar
-            NavigationRail(
-            ) {
+            NavigationRail(backgroundColor = Color.LightGray) {
                 screens.forEach {
                     NavigationRailItem(
                         selected = currentScreen == it.name,
@@ -71,19 +67,22 @@ fun App() {
     }
 }
 
-
+@Composable
+fun BeautyButton(onClick: () -> Unit, content: @Composable() (RowScope.() -> Unit)){
+    Button(onClick, content = content)
+}
 
 @Composable
 fun CustomNavigationHost(
     navController: NavController
 ) {
     NavigationHost(navController) {
-        composable(Screen.SJF.name) {
-            SJF()
-        }
-
         composable(Screen.RR.name) {
             RoundRobin()
+        }
+
+        composable(Screen.SJF.name) {
+            SJF()
         }
 
         composable(Screen.PSJF.name) {
@@ -137,11 +136,11 @@ fun NavigationHost.NavigationGraphBuilder.composable(
 enum class Screen(
     val label: String,
 ) {
+    RR(
+        label = "RR",
+    ),
     SJF(
         label = "SJF",
-    ),
-    RR(
-        label = "RoundRobin",
     ),
     PSJF(
         label = "PSJF",

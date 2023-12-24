@@ -31,13 +31,6 @@ class NavController(
         }
     }
 
-    // Function to handle the back
-    fun navigateBack() {
-        if (backStackScreens.isNotEmpty()) {
-            currentScreen.value = backStackScreens.last()
-            backStackScreens.remove(currentScreen.value)
-        }
-    }
 }
 
 

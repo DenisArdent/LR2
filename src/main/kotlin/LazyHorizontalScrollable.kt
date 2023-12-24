@@ -115,7 +115,7 @@ fun LazyHorizontalScrollableForRR(
                             TableCell(text = "")
                         }
                         for (j in x until processes.size){
-                            if (i==1 &&  j==0){
+                            if (i==1 && j==0){
                                 TableCell(text = "И")
                             } else{
                                 TableCell(text = "Г")

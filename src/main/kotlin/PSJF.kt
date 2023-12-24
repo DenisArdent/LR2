@@ -13,39 +13,44 @@ import kotlinx.coroutines.launch
 @Composable
 fun PSJF(){
     val composableScope = rememberCoroutineScope()
-    var processName by remember { mutableStateOf("") }
+    var avgFullTime by remember { mutableStateOf("") }
+    var avgTime by remember { mutableStateOf("") }
+    var avgReactiveTime by remember { mutableStateOf("") }
+    var processName by remember { mutableStateOf(1) }
     var processTime by remember { mutableStateOf("") }
-    var processQuant by remember { mutableStateOf("") }
+    var processQuant = 1
     val processes = PSJFImitator.processes.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()){
         Row(Modifier.weight(0.9f)) {
-            Text("PSJF")
-            LazyHorizontalScrollable(processes.value, Modifier.weight(0.7f).padding(10.dp))
             Column(Modifier.weight(0.3f)) {
-                TextField(label = { Text("Квант времени") }, value = processQuant, onValueChange = {
-                    processQuant = it
-                })
-                TextField(label = { Text("Имя процесса") }, value = processName, onValueChange = {
-                    processName = it
-                })
+                Text("PSJF")
                 TextField(label = { Text("Длительность процесса") },value = processTime, onValueChange = {
                     processTime = it
                 })
 
-                Button(onClick = {
-                    PSJFImitator.addProcess(processName, processTime.toInt())
+                BeautyButton(onClick = {
+                    PSJFImitator.addProcess("p${processName++}", processTime.toInt())
+                    val process = PSJFImitator.processes.value.values.toList()
+                    avgFullTime = calculateFullTime(process).toString()
+                    avgTime = calculateTime(process).toString()
+                    avgReactiveTime = calculateReactiveTime(process).toString()
                 }){
                     Text("Добавить процесс")
                 }
-                Button(onClick = {
+                BeautyButton(onClick = {
                     composableScope.launch{
                         PSJFImitator.startCalculating()
                     }
                 }){
                     Text("Запустить процессы")
                 }
+                Text("Среднее время в системе: ${avgFullTime}")
+                Text("Среднее потерянное время: $avgTime")
+                Text("Среднее отношение реактивности: $avgReactiveTime")
             }
+            LazyHorizontalScrollable(processes.value, Modifier.weight(0.7f).padding(10.dp))
         }
     }
 }
+

@@ -1,9 +1,6 @@
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.naming.Name
-import kotlin.coroutines.CoroutineContext
 
 interface ProcessImitator{
     fun addProcess(name: String, duration: Int)
@@ -12,6 +9,9 @@ interface ProcessImitator{
 
 object RoundRobinImitator: ProcessImitator {
     private val _processes = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val avgFullTime = MutableStateFlow(0.0)
+    val avgTime = MutableStateFlow(0.0)
+    val avgReactiveTime = MutableStateFlow(0.0)
     val processes = _processes.asStateFlow()
 
     override fun addProcess(name: String, duration: Int) {
@@ -24,15 +24,26 @@ object RoundRobinImitator: ProcessImitator {
     }
 
     suspend fun startCalculating(quant: Int){
+        val sysTime = mutableMapOf<String, Int>()
+        val start = _processes.value.toMutableMap()
         while (_processes.value.isNotEmpty()){
             val entities = _processes.value.toMutableMap()
             val firstKey = _processes.value.keys.first()
             for (i in 1..quant){
                 delay(1000)
-                if (entities[firstKey] != 0){
-                    entities[firstKey] = entities[firstKey]!! - 1
-                } else {
-                    entities.remove(firstKey)
+                for (j in entities){
+                    try {
+                        sysTime[j.key] = sysTime[j.key]!!.plus(1)
+                    } catch (e: Exception){
+                        sysTime[j.key] = 1
+                    }
+                }
+                if (entities[firstKey] != null){
+                    if (entities[firstKey] != 0){
+                        entities[firstKey] = entities[firstKey]!! - 1
+                    } else {
+                        entities.remove(firstKey)
+                    }
                 }
             }
             try {
@@ -46,15 +57,27 @@ object RoundRobinImitator: ProcessImitator {
             } catch (e: Exception){
 
             }
-            println(entities)
             _processes.value = entities
         }
+        var result = 0
+        var reactiveResult = 0.0
+        for (i in sysTime){
+            result += i.value-start[i.key]!!
+            reactiveResult += start[i.key]!!/i.value.toDouble()
+        }
+        println(sysTime)
+        avgTime.emit(result/sysTime.size.toDouble())
+        avgFullTime.emit(sysTime.values.sum()/sysTime.size.toDouble())
+        avgReactiveTime.emit(reactiveResult/sysTime.size.toDouble())
     }
 
 }
 
 object RRSJFImitator: ProcessImitator {
     private val _processes = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val avgFullTime = MutableStateFlow(0.0)
+    val avgTime = MutableStateFlow(0.0)
+    val avgReactiveTime = MutableStateFlow(0.0)
     val processes = _processes.asStateFlow()
 
     override fun addProcess(name: String, duration: Int) {
@@ -67,15 +90,26 @@ object RRSJFImitator: ProcessImitator {
     }
 
     suspend fun startCalculating(quant: Int){
+        val sysTime = mutableMapOf<String, Int>()
+        val start = _processes.value.toMutableMap()
         while (_processes.value.isNotEmpty()){
             val entities = _processes.value.toMutableMap()
             val firstKey = _processes.value.keys.first()
             for (i in 1..quant){
                 delay(1000)
-                if (entities[firstKey] != 0){
-                    entities[firstKey] = entities[firstKey]!! - 1
-                } else {
-                    entities.remove(firstKey)
+                for (j in entities){
+                    try {
+                        sysTime[j.key] = sysTime[j.key]!!.plus(1)
+                    } catch (e: Exception){
+                        sysTime[j.key] = 1
+                    }
+                }
+                if (entities[firstKey] != null){
+                    if (entities[firstKey] != 0){
+                        entities[firstKey] = entities[firstKey]!! - 1
+                    } else {
+                        entities.remove(firstKey)
+                    }
                 }
             }
             try {
@@ -89,9 +123,18 @@ object RRSJFImitator: ProcessImitator {
             } catch (e: Exception){
 
             }
-            println(entities)
             _processes.value = entities
         }
+        var result = 0
+        var reactiveResult = 0.0
+        for (i in sysTime){
+            result += i.value-start[i.key]!!
+            reactiveResult += start[i.key]!!/i.value.toDouble()
+        }
+        println(sysTime)
+        avgTime.emit(result/sysTime.size.toDouble())
+        avgFullTime.emit(sysTime.values.sum()/sysTime.size.toDouble())
+        avgReactiveTime.emit(reactiveResult/sysTime.size.toDouble())
     }
 
 }
